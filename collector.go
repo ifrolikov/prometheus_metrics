@@ -2,6 +2,7 @@ package prometheus_metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"sync"
 	"time"
 )
 
@@ -12,10 +13,11 @@ type Collector struct {
 	dynamicMetricsMap map[string]*prometheus.SummaryVec
 	namespace         string
 	subsystem         string
+	mtx               *sync.Mutex
 }
 
 func NewCollector(podName string, namespace string, subsystem string) *Collector {
-	collector := &Collector{podName: podName, namespace: namespace, subsystem: subsystem}
+	collector := &Collector{podName: podName, namespace: namespace, subsystem: subsystem, mtx: &sync.Mutex{}}
 	return collector
 }
 
@@ -29,6 +31,8 @@ func InitGlobalCollector(podName string, namespace string, subsystem string) *Co
 }
 
 func (this *Collector) ObserveDynamicMetric(name string, startTime time.Time) {
+	defer this.mtx.Unlock()
+	this.mtx.Lock()
 	this.initMetricIfNotExist(name)
 	labels := map[string]string{}
 	this.dynamicMetricsMap[name].With(labels).Observe(float64(time.Since(startTime)))
