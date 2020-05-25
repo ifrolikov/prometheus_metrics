@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	startTime := time.Now()
+    startTime := time.Now()
     prometheus_metrics.InitGlobalCollector("pod name","service namespace", "service subsystem")
         
     metricCollector := prometheus_metrics.GetGlobalCollector()
