@@ -1,5 +1,5 @@
-#Prometheus metric team A tools
-##Observe timer metrics or counter metric
+# Prometheus metric tools
+## Observe timer metrics or counter metric
 
 ```go
 package main
