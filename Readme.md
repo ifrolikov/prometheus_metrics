@@ -44,8 +44,8 @@ import (
 
 func main() {
 	grafanaService := grafana.NewService(
-		"https://grafana.monitoring.devel.tutu.ru",
-		"eyJrIjoibHdERFpQQnAzTmFjbzNyd1c3WDFERFlyQXNINHV1NjgiLCJuIjoiZnJvbGlrb3YiLCJpZCI6MX0=",
+		"http://grafana.api",
+		"BREARER_AUTH_KEY",
 	)
 
 	ctx := context.TODO()
