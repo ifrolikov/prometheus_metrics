@@ -50,10 +50,10 @@ func main() {
 
 	ctx := context.TODO()
 	err := grafanaService.PushTimerGraph("Frolikov Dashboard From API",
-		"aviaapi_graphql_total_processing_time",
-		"Тайминг запросов в монолит для GraphQL",
-		"aviaapi",
-		"public",
+		"metric_name",
+		"timer name for grafana",
+		"your_service_namespace",
+		"your_service_subtype",
 		ctx)
 	if err != nil {
 		panic(err)
@@ -61,8 +61,8 @@ func main() {
 
 	grafanaService.SetPaasDatasource()
 	err = grafanaService.PushCustomCounterGraph("Frolikov Dashboard From API",
-		`statsd_avia_api_endpoint_process_count{ednpoint="RefundCalculate",status="error"}`,
-		"К-во запросов на расчет возврата в монолит в час",
+		`metric_name`,
+		"counter name for grafana",
 		ctx)
 	if err != nil {
 		panic(err)
