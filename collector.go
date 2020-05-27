@@ -193,7 +193,7 @@ func (this *Collector) separateSpecialLabels(labels map[string]string) (map[stri
 
 	for key, val := range labels {
 		isSpecialLabel := false
-		for label, _ := range grafana.GrafanaLabels {
+		for _, label := range grafana.GrafanaLabels {
 			if string(label) == key {
 				specialLabels[key] = val
 				isSpecialLabel = true
