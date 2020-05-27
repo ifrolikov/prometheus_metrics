@@ -66,14 +66,6 @@ func main() {
     if err != nil {
     	// log error or something else
     }
-    
-    err = metricCollector.ObserveTimer("full_timer_metric_name", startTime, map[string]string{
-    	"first_label": "label val 1",
-    	"second_label": "label val 2",
-    })
-    if err != nil {
-    	// log error or something else
-    }
 }
 ```
 
