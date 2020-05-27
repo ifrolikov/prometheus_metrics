@@ -228,7 +228,7 @@ func (this *Collector) tryToCreateGrafanaGraph(labels map[string]string,
 		case GRAPH_TYPE_COUNTER:
 			return this.grafanaService.PushCounterGraph(dashboard, metricName, graphTitle, this.namespace, this.subsystem, ctx, datasource)
 		case GRAPH_TYPE_TIMER:
-			break
+			return this.grafanaService.PushTimerGraph(dashboard, metricName, graphTitle, this.namespace, this.subsystem, ctx, datasource)
 		default:
 			return errors.New(fmt.Sprintf("unknown graph type: %s", string(sendMethodType)))
 		}
