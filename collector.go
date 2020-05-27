@@ -45,7 +45,7 @@ func NewCollector(podName string, namespace string, subsystem string, grafanaIni
 		collector.grafanaService = grafana.NewService(
 			grafanaInitData.ApiUrl,
 			grafanaInitData.AuthKey,
-			grafanaInitData.DefaultDashboard)
+			grafanaInitData.DataSource)
 		collector.grafanaDashboard = &grafanaInitData.DefaultDashboard
 	}
 	return collector
