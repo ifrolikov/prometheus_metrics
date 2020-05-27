@@ -198,7 +198,7 @@ func (this *Service) initBoard(uid string, title string, ctx context.Context) (*
 	if err != nil {
 		if len(dashboardNotFoundRegexp.FindStringSubmatch(err.Error())) != 0 {
 			board = *sdk.NewBoard(title)
-			board.Time = sdk.Time{From: "now-1h", To: "now"}
+			board.Time = sdk.Time{From: "now-24h", To: "now"}
 			board.Slug = uid
 			board.UID = uid
 		} else {
