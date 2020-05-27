@@ -9,6 +9,7 @@ func main() {
 	grafanaService := grafana.NewService(
 		"https://grafana.monitoring.devel.tutu.ru",
 		"eyJrIjoibHdERFpQQnAzTmFjbzNyd1c3WDFERFlyQXNINHV1NjgiLCJuIjoiZnJvbGlrb3YiLCJpZCI6MX0=",
+		"openshift-prod-10s",
 	)
 
 	ctx := context.TODO()
@@ -17,16 +18,18 @@ func main() {
 		"Тайминг запросов в монолит для GraphQL",
 		"aviaapi",
 		"public",
-		ctx)
+		ctx,
+		nil)
 	if err != nil {
 		panic(err)
 	}
 
-	grafanaService.SetPaasDatasource()
+	datasource := "paas-production-10s"
 	err = grafanaService.PushCustomCounterGraph("Frolikov Dashboard From API",
 		`statsd_avia_api_endpoint_process_count{ednpoint="RefundCalculate",status="error"}`,
 		"К-во запросов на расчет возврата в монолит в час",
-		ctx)
+		ctx,
+		&datasource)
 	if err != nil {
 		panic(err)
 	}

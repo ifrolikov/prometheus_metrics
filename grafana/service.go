@@ -20,7 +20,7 @@ type Service struct {
 	client      *sdk.Client
 }
 
-func NewService(apiUrl string, authKey string) *Service {
+func NewService(apiUrl string, authKey string, datasource string) *Service {
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -32,19 +32,10 @@ func NewService(apiUrl string, authKey string) *Service {
 		client:      sdk.NewClient(apiUrl, authKey, httpClient),
 		panelWitdh:  24,
 		panelHeight: 7,
+		datasource:  datasource,
 	}
 
-	result.SetOpenShiftDatasource()
-
 	return result
-}
-
-func (this *Service) SetOpenShiftDatasource() {
-	this.datasource = "openshift-prod-10s"
-}
-
-func (this *Service) SetPaasDatasource() {
-	this.datasource = "paas-production-10s"
 }
 
 func (this *Service) PushCounterGraph(dashboard string,
@@ -52,27 +43,37 @@ func (this *Service) PushCounterGraph(dashboard string,
 	title string,
 	namespace string,
 	subsystem string,
-	ctx context.Context) error {
+	ctx context.Context,
+	datasource *string) error {
 	fullMetricName := namespace + "_" + subsystem + "_" + metricName;
 	metricExpression := `sum(xincrease(` + fullMetricName + `[1h]))`
+	if datasource == nil {
+		datasource = &this.datasource
+	}
 	return this.pushGraph(dashboard,
 		title,
 		fullMetricName,
 		metricExpression,
 		"short",
+		*datasource,
 		ctx)
 }
 
 func (this *Service) PushCustomCounterGraph(dashboard string,
 	fullMetricName string,
 	title string,
-	ctx context.Context) error {
+	ctx context.Context,
+	datasource *string) error {
 	metricExpression := `sum(xincrease(` + fullMetricName + `[1h]))`
+	if datasource == nil {
+		datasource = &this.datasource
+	}
 	return this.pushGraph(dashboard,
 		title,
 		fullMetricName,
 		metricExpression,
 		"short",
+		*datasource,
 		ctx)
 }
 
@@ -81,14 +82,19 @@ func (this *Service) PushTimerGraph(dashboard string,
 	title string,
 	namespace string,
 	subsystem string,
-	ctx context.Context) error {
+	ctx context.Context,
+	datasource *string) error {
 	fullMetricName := namespace + "_" + subsystem + "_" + metricName;
 	metricExpression := `max by(quantile)(` + fullMetricName + `)`
+	if datasource == nil {
+		datasource = &this.datasource
+	}
 	return this.pushGraph(dashboard,
 		title,
 		fullMetricName,
 		metricExpression,
 		"ns",
+		*datasource,
 		ctx)
 }
 
@@ -97,6 +103,7 @@ func (this *Service) pushGraph(dashboard string,
 	fullMetricName string,
 	metricExpression string,
 	yAxisUnit string,
+	datasource string,
 	ctx context.Context) error {
 	board, err := this.initBoard(
 		this.initUID(dashboard),
@@ -141,7 +148,7 @@ func (this *Service) pushGraph(dashboard string,
 	graph.Linewidth = 1
 	renderer := "flot"
 	graph.Renderer = &renderer
-	graph.Datasource = &this.datasource
+	graph.Datasource = &datasource
 	dashLength := uint(10)
 	graph.DashLength = &dashLength
 	dashes := false
