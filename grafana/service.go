@@ -100,6 +100,24 @@ func (this *Service) PushTimerGraph(dashboard string,
 		ctx)
 }
 
+func (this *Service) PushCustomTimerGraph(dashboard string,
+	fullMetricName string,
+	title string,
+	ctx context.Context,
+	datasource *string) error {
+	metricExpression := `max by(quantile)(` + fullMetricName + `)`
+	if datasource == nil {
+		datasource = &this.datasource
+	}
+	return this.pushGraph(dashboard,
+		title,
+		fullMetricName,
+		metricExpression,
+		"ns",
+		*datasource,
+		ctx)
+}
+
 func (this *Service) pushGraph(dashboard string,
 	title string,
 	fullMetricName string,
