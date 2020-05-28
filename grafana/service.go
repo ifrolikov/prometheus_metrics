@@ -14,10 +14,11 @@ import (
 var dashboardNotFoundRegexp = regexp.MustCompile("Dashboard not found")
 
 type Service struct {
-	datasource  string
-	panelWitdh  int
-	panelHeight int
-	client      *sdk.Client
+	datasource                             string
+	panelWitdh                             int
+	panelHeight                            int
+	client                                 *sdk.Client
+	existingGraphsInDashboardsRuntimeCache map[string][]string
 }
 
 func NewService(apiUrl string, authKey string, datasource string) *Service {
@@ -29,10 +30,11 @@ func NewService(apiUrl string, authKey string, datasource string) *Service {
 		},
 	}
 	result := &Service{
-		client:      sdk.NewClient(apiUrl, authKey, httpClient),
-		panelWitdh:  24,
-		panelHeight: 7,
-		datasource:  datasource,
+		client:                                 sdk.NewClient(apiUrl, authKey, httpClient),
+		panelWitdh:                             24,
+		panelHeight:                            7,
+		datasource:                             datasource,
+		existingGraphsInDashboardsRuntimeCache: map[string][]string{},
 	}
 
 	return result
@@ -105,6 +107,13 @@ func (this *Service) pushGraph(dashboard string,
 	yAxisUnit string,
 	datasource string,
 	ctx context.Context) error {
+	if graphs, ok := this.existingGraphsInDashboardsRuntimeCache[dashboard]; ok {
+		for _, graph := range graphs {
+			if graph == fullMetricName {
+				return nil
+			}
+		}
+	}
 	board, err := this.initBoard(
 		this.initUID(dashboard),
 		dashboard,
@@ -118,6 +127,7 @@ func (this *Service) pushGraph(dashboard string,
 			metricReg := regexp.MustCompile(fullMetricName)
 			if len(metricReg.FindStringSubmatch(target.Expr)) > 0 {
 				// Уже добавлено
+				this.addGraphToRuntimeCache(fullMetricName, dashboard)
 				return nil
 			}
 		}
@@ -190,7 +200,16 @@ func (this *Service) pushGraph(dashboard string,
 	if *status.Status != "success" {
 		return errors.New(fmt.Sprintf("status not is success: %s", *status.Status))
 	}
+
+	this.addGraphToRuntimeCache(fullMetricName, dashboard)
 	return nil
+}
+
+func (this *Service) addGraphToRuntimeCache(fullMetricName string, dashboard string) {
+	if _, ok := this.existingGraphsInDashboardsRuntimeCache[dashboard]; !ok {
+		this.existingGraphsInDashboardsRuntimeCache[dashboard] = []string{}
+	}
+	this.existingGraphsInDashboardsRuntimeCache[dashboard] = append(this.existingGraphsInDashboardsRuntimeCache[dashboard], fullMetricName)
 }
 
 func (this *Service) initBoard(uid string, title string, ctx context.Context) (*sdk.Board, error) {
