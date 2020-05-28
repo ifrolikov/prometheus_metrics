@@ -58,6 +58,7 @@ func (this *Service) PushCounterGraph(dashboard string,
 		metricExpression,
 		"short",
 		*datasource,
+		"rph",
 		ctx)
 }
 
@@ -76,6 +77,7 @@ func (this *Service) PushCustomCounterGraph(dashboard string,
 		metricExpression,
 		"short",
 		*datasource,
+		"rph",
 		ctx)
 }
 
@@ -97,6 +99,7 @@ func (this *Service) PushTimerGraph(dashboard string,
 		metricExpression,
 		"ns",
 		*datasource,
+		"for {{quantile}}pp",
 		ctx)
 }
 
@@ -115,6 +118,7 @@ func (this *Service) PushCustomTimerGraph(dashboard string,
 		metricExpression,
 		"ns",
 		*datasource,
+		"for {{quantile}}pp",
 		ctx)
 }
 
@@ -124,6 +128,7 @@ func (this *Service) pushGraph(dashboard string,
 	metricExpression string,
 	yAxisUnit string,
 	datasource string,
+	legend string,
 	ctx context.Context) error {
 	if graphs, ok := this.existingGraphsInDashboardsRuntimeCache[dashboard]; ok {
 		for _, graph := range graphs {
@@ -204,7 +209,7 @@ func (this *Service) pushGraph(dashboard string,
 		Interval:     "",
 		Expr:         metricExpression,
 		RefID:        "A",
-		LegendFormat: "for {{quantile}}pp",
+		LegendFormat: legend,
 	})
 	board.Panels = append(board.Panels, graph)
 
