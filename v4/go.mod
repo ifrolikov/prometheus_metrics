@@ -1,6 +1,6 @@
-module github.com/ifrolikov/prometheus_metrics
+module github.com/ifrolikov/prometheus_metrics/v4
 
-go 1.12
+go 1.14
 
 require (
 	github.com/golang/protobuf v1.3.5 // indirect
