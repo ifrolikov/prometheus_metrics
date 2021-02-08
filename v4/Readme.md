@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/ifrolikov/prometheus_metrics"
+	"github.com/ifrolikov/prometheus_metrics/v4"
 	"time"
 )
 
@@ -38,8 +38,8 @@ If you want to create grafana metrics:
 package main
 
 import (
-	"github.com/ifrolikov/prometheus_metrics"
-	"github.com/ifrolikov/prometheus_metrics/grafana"
+	"github.com/ifrolikov/prometheus_metrics/v4"
+	"github.com/ifrolikov/prometheus_metrics/v4/grafana"
 	"time"
 )
 
@@ -75,7 +75,7 @@ package main
 
 import (
 	"context"
-	"github.com/ifrolikov/prometheus_metrics/grafana"
+	"github.com/ifrolikov/prometheus_metrics/v4/grafana"
 )
 
 func main() {

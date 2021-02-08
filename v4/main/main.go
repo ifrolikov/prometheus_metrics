@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/ifrolikov/prometheus_metrics/grafana"
+	"github.com/ifrolikov/prometheus_metrics/v4/grafana"
 )
 
 func main() {

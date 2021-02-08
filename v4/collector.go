@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ifrolikov/prometheus_metrics/grafana"
+	"github.com/ifrolikov/prometheus_metrics/v4/grafana"
 	"github.com/prometheus/client_golang/prometheus"
 	"sort"
 	"sync"
