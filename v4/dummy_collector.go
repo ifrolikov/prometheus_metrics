@@ -8,6 +8,10 @@ type DummyCollector struct {
 
 }
 
+func NewDummyCollector() *DummyCollector {
+	return &DummyCollector{}
+}
+
 func (d DummyCollector) ObserveTimer(name string, startTime time.Time, labels map[string]string) error {
 	return nil
 }
