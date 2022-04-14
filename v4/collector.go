@@ -13,9 +13,10 @@ import (
 )
 
 const (
+	GRAPH_TYPE_GAUGE     graphType = "gauge"
 	GRAPH_TYPE_HISTOGRAM graphType = "histogram"
-	GRAPH_TYPE_COUNTER graphType = "counter"
-	GRAPH_TYPE_TIMER   graphType = "timer"
+	GRAPH_TYPE_COUNTER   graphType = "counter"
+	GRAPH_TYPE_TIMER     graphType = "timer"
 )
 
 var globalCollector *Collector
@@ -27,6 +28,7 @@ type Collector struct {
 	timeMetricsMap            map[string]*prometheus.SummaryVec
 	timeMetricsLabelsMap      map[string][]string
 	counterMetricsMap         map[string]*prometheus.CounterVec
+	gaugeMetricsMap           map[string]*prometheus.GaugeVec
 	counterMetricsLabelsMap   map[string][]string
 	namespace                 string
 	subsystem                 string
@@ -35,6 +37,7 @@ type Collector struct {
 	grafanaDashboard          *string
 	histogramMetricsMap       map[string]*prometheus.HistogramVec
 	histogramMetricsLabelsMap map[string][]string
+	gaugeMetricsLabelsMap     map[string][]string
 }
 
 func NewCollector(podName string, namespace string, subsystem string, grafanaInitData *grafana.InitData) *Collector {
@@ -87,7 +90,6 @@ func (c *Collector) ObserveTimer(name string, startTime time.Time, labels map[st
 	return nil
 }
 
-
 func (c *Collector) ObserveHistogram(name string, startTime time.Time, labels map[string]string) error {
 	defer c.mtx.Unlock()
 	c.mtx.Lock()
@@ -132,6 +134,24 @@ func (c *Collector) ObserveCounter(name string, inc int, labels map[string]strin
 	return nil
 }
 
+func (c *Collector) ObserveGauge(name string, inc int, labels map[string]string) error {
+	defer c.mtx.Unlock()
+	c.mtx.Lock()
+
+	if labels == nil {
+		labels = map[string]string{}
+	} else {
+		labels, _ = c.separateSpecialLabels(labels)
+	}
+
+	err := c.initGaugeIfNotExist(name, labels)
+	if err != nil {
+		return err
+	}
+	c.gaugeMetricsMap[name].With(labels).Add(float64(inc))
+	return nil
+}
+
 func (c *Collector) initTimerIfNotExist(name string, labels map[string]string) error {
 	if c.timeMetricsMap == nil {
 		c.timeMetricsMap = make(map[string]*prometheus.SummaryVec)
@@ -172,8 +192,6 @@ func (c *Collector) initTimerIfNotExist(name string, labels map[string]string) e
 	return nil
 }
 
-
-
 func (c *Collector) initHistogramIfNotExist(name string, labels map[string]string) error {
 	if c.histogramMetricsMap == nil {
 		c.histogramMetricsMap = make(map[string]*prometheus.HistogramVec)
@@ -195,7 +213,7 @@ func (c *Collector) initHistogramIfNotExist(name string, labels map[string]strin
 				Subsystem:   c.subsystem,
 				Name:        name,
 				Help:        "dynamic metric " + name,
-				Buckets:  []float64{.1, .25, .5, .75, .85, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 10},
+				Buckets:     []float64{.1, .25, .5, .75, .85, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 10},
 				ConstLabels: map[string]string{"podname": c.podName},
 			}, labelNames)
 		c.histogramMetricsLabelsMap[name] = labelNames
@@ -241,6 +259,45 @@ func (c *Collector) initCounterIfNotExist(name string, labels map[string]string)
 		prometheus.MustRegister(c.counterMetricsMap[name])
 	} else {
 		marshaledCurrentMetricLabels, _ := json.Marshal(c.counterMetricsLabelsMap[name])
+		marshaledRequestedMetricLabels, _ := json.Marshal(labelNames)
+		if string(marshaledCurrentMetricLabels) != string(marshaledRequestedMetricLabels) {
+			return errors.New(fmt.Sprintf("invalid metric labels:\n"+
+				"current labels: %s\n"+
+				"requested labels: %s",
+				marshaledCurrentMetricLabels,
+				marshaledRequestedMetricLabels))
+		}
+	}
+	return nil
+}
+
+func (c *Collector) initGaugeIfNotExist(name string, labels map[string]string) error {
+	if c.gaugeMetricsMap == nil {
+		c.gaugeMetricsMap = make(map[string]*prometheus.GaugeVec)
+		c.gaugeMetricsLabelsMap = make(map[string][]string)
+	}
+
+	var labelNames []string
+	if labels != nil {
+		for labelName := range labels {
+			labelNames = append(labelNames, labelName)
+		}
+	}
+	sort.Strings(labelNames)
+
+	if _, ok := c.gaugeMetricsMap[name]; !ok {
+		c.gaugeMetricsMap[name] = prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace:   c.namespace,
+				Subsystem:   c.subsystem,
+				Name:        name,
+				Help:        "dynamic metric " + name,
+				ConstLabels: map[string]string{"podname": c.podName},
+			}, labelNames)
+		c.gaugeMetricsLabelsMap[name] = labelNames
+		prometheus.MustRegister(c.gaugeMetricsMap[name])
+	} else {
+		marshaledCurrentMetricLabels, _ := json.Marshal(c.gaugeMetricsLabelsMap[name])
 		marshaledRequestedMetricLabels, _ := json.Marshal(labelNames)
 		if string(marshaledCurrentMetricLabels) != string(marshaledRequestedMetricLabels) {
 			return errors.New(fmt.Sprintf("invalid metric labels:\n"+
