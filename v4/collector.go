@@ -148,7 +148,7 @@ func (c *Collector) ObserveGauge(name string, inc int, labels map[string]string)
 	if err != nil {
 		return err
 	}
-	c.gaugeMetricsMap[name].With(labels).Add(float64(inc))
+	c.gaugeMetricsMap[name].With(labels).Set(float64(inc))
 	return nil
 }
 
